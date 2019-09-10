@@ -81,8 +81,8 @@ function onRollCountsChanged() {
 
 	const expectedAverage = expectedAverageRollCount();
 
-	document.getElementById("total-count").innerHTML = totalRollCount();
-	document.getElementById("expected-average").innerHTML = expectedAverage;
+	document.getElementById("total-count").textContent = totalRollCount();
+	document.getElementById("expected-average").textContent = expectedAverage;
 
 	fillDataTable();
 }
@@ -293,22 +293,22 @@ function drawHistogram() {
 function fillDataTable() {
 	const dataTable = document.getElementById("data-table");
 
-	dataTable.innerHTML = "";
+	dataTable.textContent = "";
 
 	const headerRow = document.createElement("tr");
 	{
 		const cell = document.createElement("th");
-		cell.innerHTML = "Roll";
+		cell.textContent = "Roll";
 		headerRow.appendChild(cell);
 	}
 	{
 		const cell = document.createElement("th");
-		cell.innerHTML = "Count";
+		cell.textContent = "Count";
 		headerRow.appendChild(cell);
 	}
 	{
 		const cell = document.createElement("th");
-		cell.innerHTML = "Deviation";
+		cell.textContent = "Deviation";
 		headerRow.appendChild(cell);
 	}
 	dataTable.appendChild(headerRow);
@@ -323,19 +323,19 @@ function fillDataTable() {
 		const row = document.createElement("tr");
 		{
 			const cell = document.createElement("td");
-			cell.innerHTML = roll;
+			cell.textContent = roll;
 			row.appendChild(cell);
 		}
 		{
 			const cell = document.createElement("td");
-			cell.innerHTML = count;
+			cell.textContent = count;
 			row.appendChild(cell);
 		}
 		{
 			const deviation = count - expectedAverage;
 
 			const cell = document.createElement("td");
-			cell.innerHTML = deviation.toFixed(2);
+			cell.textContent = deviation.toFixed(2);
 			row.appendChild(cell);
 		}
 		dataTable.appendChild(row);
