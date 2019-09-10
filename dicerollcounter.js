@@ -132,8 +132,17 @@ class RollCounter {
 
 class Histogram {
 	constructor() {
+		// Note: the canvas is not available when the Histogram object is
+		// origianlly created.
 		this.canvas = null;
 		this.context = null;
+		this.barSpacing = 0;
+		this.barWidth = 0;
+		this.barPadding = 0;
+		this.fontHeight = 0;
+		this.labelHeight = 0;
+		this.barBottom = 0;
+		this.maxBarHeight = 0;
 		this.redStripePattern = null;
 	}
 
@@ -144,6 +153,15 @@ class Histogram {
 
 		this.canvas.height = this.canvas.width * 0.5;
 
+		this.barSpacing = this.canvas.width / numFaces;
+		this.barWidth = this.barSpacing * 0.65;
+		this.barPadding = (this.barSpacing - this.barWidth) / 2;
+		this.fontHeight = this.barWidth * 0.75;
+		this.labelHeight = this.fontHeight + this.barPadding;
+		this.barBottom = this.canvas.height - this.labelHeight;
+		this.maxBarHeight
+			= this.canvas.height - this.labelHeight - this.barPadding;
+
 		this.createRedStripePattern();
 	}
 
@@ -152,14 +170,6 @@ class Histogram {
 		if (this.canvas === null) {
 			this.init();
 		}
-
-		const barSpacing = this.canvas.width / 20;
-		const barWidth = barSpacing * 0.65;
-		const barPadding = (barSpacing - barWidth) / 2;
-		const fontHeight = barWidth * 0.75;
-		const labelHeight = fontHeight + barPadding;
-		const barBottom = this.canvas.height - labelHeight;
-		const maxBarHeight = this.canvas.height - labelHeight - barPadding;
 
 		const maxCount = counter.maxRollCount();
 		const expectedAverageHigh = Math.ceil(counter.expectedAverage) + 0.5;
@@ -171,9 +181,11 @@ class Histogram {
 		// Expected Average Range
 		if (maxCount > 0) {
 			const averageTop
-				= barBottom - (maxBarHeight * expectedAverageHigh / maxCount);
+				= this.barBottom
+					- (this.maxBarHeight * expectedAverageHigh / maxCount);
 			const averageBottom
-				= barBottom - (maxBarHeight * expectedAverageLow / maxCount);
+				= this.barBottom
+					- (this.maxBarHeight * expectedAverageLow / maxCount);
 
 			this.context.fillStyle = "grey";
 			this.context.fillRect
@@ -202,35 +214,40 @@ class Histogram {
 					continue;
 				}
 
-				const barLeft = (roll - 1) * barSpacing;
+				const barLeft = (roll - 1) * this.barSpacing;
 
-				this.context.fillRect(barLeft, 0, barSpacing, barBottom);
+				this.context.fillRect
+					( barLeft
+					, 0
+					, this.barSpacing
+					, this.barBottom
+					);
 			}
 		}
 
 		this.context.textAlign = "center";
 		this.context.textBaseline = "bottom";
-		this.context.font = fontHeight + "px sans-serif";
+		this.context.font = this.fontHeight + "px sans-serif";
 		this.context.fillStyle = "black";
 
 		for (let roll = minRoll; roll <= maxRoll; roll++) {
-			const barLeft = (roll - 1) * barSpacing;
+			const barLeft = (roll - 1) * this.barSpacing;
 
 			this.context.fillText
 				( roll
-				, barLeft + barSpacing / 2
+				, barLeft + this.barSpacing / 2
 				, this.canvas.height
 				);
 
 			const count = counter.rollCounts[roll];
 
 			if (maxCount > 0) {
-				const barHeight = maxBarHeight * count / maxCount;
+				const barHeight = this.maxBarHeight * count / maxCount;
 
 				this.context.fillRect
-					( barLeft + barPadding
-					, barBottom - barHeight
-					, barWidth
+					( barLeft + this.barPadding
+					, this.barBottom - barHeight
+					, this.barWidth
 					, barHeight
 					);
 			}
