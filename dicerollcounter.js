@@ -138,11 +138,20 @@ class Histogram {
 	}
 
 	/*========================================================================*/
-	draw() {
+	init() {
 		this.canvas = document.getElementById("histogram");
 		this.context = this.canvas.getContext("2d");
 
 		this.canvas.height = this.canvas.width * 0.5;
+
+		this.createRedStripePattern();
+	}
+
+	/*========================================================================*/
+	draw() {
+		if (this.canvas === null) {
+			this.init();
+		}
 
 		const canvasWidth = this.canvas.width;
 		const canvasHeight = this.canvas.height;
@@ -180,9 +189,6 @@ class Histogram {
 
 		// Greatest Deviations
 		{
-			if (this.redStripePattern === null)
-				this.createRedStripePattern();
-
 			this.context.fillStyle = this.redStripePattern;
 
 			const greatestDeviation = counter.greatestDeviationRollCount();
