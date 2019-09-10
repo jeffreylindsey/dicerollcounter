@@ -11,6 +11,7 @@ const rollHistoryMaxLength = 10;
 class RollCounter {
 	constructor() {
 		this.rollCounts = {};
+		this.total = 0;
 	}
 
 	/*========================================================================*/
@@ -20,31 +21,20 @@ class RollCounter {
 		} else {
 			this.rollCounts[number]++;
 		}
+
+		this.total++;
 	}
 
 	/*========================================================================*/
 	uncountRoll(number) {
 		this.rollCounts[number]--;
+		this.total--;
 	}
 
 	/*========================================================================*/
 	reset() {
 		this.rollCounts = {};
-	}
-
-	/*========================================================================*/
-	totalRollCount() {
-		let total = 0;
-
-		for (let roll = minRoll; roll <= maxRoll; roll++) {
-			let count = this.rollCounts[roll];
-
-			if (count === undefined) continue;
-
-			total += count;
-		}
-
-		return total;
+		this.total = 0;
 	}
 
 	/*========================================================================*/
@@ -67,7 +57,7 @@ class RollCounter {
 	expectedAverageRollCount() {
 		const numFaces = maxRoll - minRoll + 1;
 
-		return this.totalRollCount() / numFaces;
+		return this.total / numFaces;
 	}
 
 	/*========================================================================*/
@@ -93,9 +83,7 @@ class RollCounter {
 	{
 		let matchingRolls = [];
 
-		const count = this.totalRollCount();
-
-		if (count <= 0) return [];
+		if (this.total <= 0) return [];
 
 		for (let roll = minRoll; roll <= maxRoll; roll++) {
 			let count = this.rollCounts[roll];
@@ -120,6 +108,21 @@ class RollCounter {
 	loadFromLocalStorage() {
 		const storedRollCounts = localStorage.getItem("rollCounts");
 		if (storedRollCounts) this.rollCounts = JSON.parse(storedRollCounts);
+
+		// The total needs to be recalculated, because the roll counts have
+		// changed.
+		this.updateTotalFromRollCounts();
+	}
+
+	/*========================================================================*/
+	updateTotalFromRollCounts() {
+		this.total = 0;
+
+		for (let roll = minRoll; roll <= maxRoll; roll++) {
+			let count = this.rollCounts[roll];
+
+			if (count !== undefined) this.total += count;
+		}
 	}
 }
 
@@ -191,7 +194,7 @@ function onRollCountsChanged() {
 
 	drawHistogram();
 
-	document.getElementById("total-count").textContent = counter.totalRollCount();
+	document.getElementById("total-count").textContent = counter.total;
 	document.getElementById("expected-average").textContent
 		= counter.expectedAverageRollCount();
 
