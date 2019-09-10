@@ -144,6 +144,7 @@ class Histogram {
 		this.barBottom = 0;
 		this.maxBarHeight = 0;
 		this.redStripePattern = null;
+		this.maxCount = 0;
 	}
 
 	/*========================================================================*/
@@ -171,33 +172,30 @@ class Histogram {
 			this.init();
 		}
 
-		const maxCount = counter.maxRollCount();
+		this.maxCount = counter.maxRollCount();
+
 		const expectedAverageHigh = Math.ceil(counter.expectedAverage) + 0.5;
 		const expectedAverageLow
 			= Math.max(0, Math.floor(counter.expectedAverage) - 0.5);
 
 		this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-		this.drawExpectedAverageRange
-			( maxCount
-			, expectedAverageHigh
-			, expectedAverageLow
-			);
+		this.drawExpectedAverageRange(expectedAverageHigh, expectedAverageLow);
 
 		this.drawGreatestDeviations(expectedAverageHigh, expectedAverageLow);
 
-		this.drawRollBars(maxCount);
+		this.drawRollBars();
 	}
 
 	/*========================================================================*/
-	drawExpectedAverageRange(maxCount, expectedAverageHigh, expectedAverageLow) {
-		if (maxCount > 0) {
+	drawExpectedAverageRange(expectedAverageHigh, expectedAverageLow) {
+		if (this.maxCount > 0) {
 			const averageTop
 				= this.barBottom
-					- (this.maxBarHeight * expectedAverageHigh / maxCount);
+					- (this.maxBarHeight * expectedAverageHigh / this.maxCount);
 			const averageBottom
 				= this.barBottom
-					- (this.maxBarHeight * expectedAverageLow / maxCount);
+					- (this.maxBarHeight * expectedAverageLow / this.maxCount);
 
 			this.context.fillStyle = "grey";
 			this.context.fillRect
@@ -238,7 +236,7 @@ class Histogram {
 	}
 
 	/*========================================================================*/
-	drawRollBars(maxCount) {
+	drawRollBars() {
 		this.context.textAlign = "center";
 		this.context.textBaseline = "bottom";
 		this.context.font = this.fontHeight + "px sans-serif";
@@ -255,8 +253,8 @@ class Histogram {
 
 			const count = counter.rollCounts[roll];
 
-			if (maxCount > 0) {
-				const barHeight = this.maxBarHeight * count / maxCount;
+			if (this.maxCount > 0) {
+				const barHeight = this.maxBarHeight * count / this.maxCount;
 
 				this.context.fillRect
 					( barLeft + this.barPadding
