@@ -14,6 +14,7 @@ class RollCounter {
 		this.rollCounts = {};
 		this.total = 0;
 		this.expectedAverage = 0;
+		this.deviations = {};
 	}
 
 	/*========================================================================*/
@@ -26,6 +27,7 @@ class RollCounter {
 
 		this.total++;
 		this.updateExpectedAverage();
+		this.updateDeviations();
 	}
 
 	/*========================================================================*/
@@ -33,6 +35,7 @@ class RollCounter {
 		this.rollCounts[number]--;
 		this.total--;
 		this.updateExpectedAverage();
+		this.updateDeviations();
 	}
 
 	/*========================================================================*/
@@ -52,15 +55,11 @@ class RollCounter {
 	}
 
 	/*========================================================================*/
-	greatestDeviationRollCount(expectedAverage) {
+	greatestDeviationRollCount() {
 		let greatestDeviation = 0;
 
 		for (let roll = minRoll; roll <= maxRoll; roll++) {
-			let count = this.rollCounts[roll];
-
-			if (count === undefined) continue;
-
-			const deviation = Math.abs(count - expectedAverage);
+			const deviation = this.deviations[roll];
 
 			if (greatestDeviation < deviation)
 				greatestDeviation = deviation;
@@ -70,18 +69,14 @@ class RollCounter {
 	}
 
 	/*========================================================================*/
-	rollsMatchingDeviation(expectedAverage, matchDeviation)
+	rollsMatchingDeviation(matchDeviation)
 	{
 		let matchingRolls = [];
 
 		if (this.total <= 0) return [];
 
 		for (let roll = minRoll; roll <= maxRoll; roll++) {
-			let count = this.rollCounts[roll];
-
-			if (count === undefined) count = 0;
-
-			const deviation = Math.abs(count - expectedAverage);
+			const deviation = this.deviations[roll];
 
 			if (deviation == matchDeviation)
 				matchingRolls.push(roll);
@@ -100,10 +95,10 @@ class RollCounter {
 		const storedRollCounts = localStorage.getItem("rollCounts");
 		if (storedRollCounts) this.rollCounts = JSON.parse(storedRollCounts);
 
-		// The total needs to be recalculated, because the roll counts have
-		// changed.
+		// Recalculate everything from the loaded roll counts.
 		this.updateTotalFromRollCounts();
 		this.updateExpectedAverage();
+		this.updateDeviations();
 	}
 
 	/*========================================================================*/
@@ -120,6 +115,16 @@ class RollCounter {
 	/*========================================================================*/
 	updateExpectedAverage() {
 		this.expectedAverage = this.total / numFaces;
+	}
+
+	/*========================================================================*/
+	updateDeviations() {
+		for (let roll = minRoll; roll <= maxRoll; roll++) {
+			let count = this.rollCounts[roll];
+			if (count === undefined) count = 0;
+
+			this.deviations[roll] = Math.abs(count - this.expectedAverage);
+		}
 	}
 }
 
@@ -275,14 +280,10 @@ function drawHistogram() {
 		const pattern = context.createPattern(patternCanvas, "repeat");
 		context.fillStyle = pattern;
 
-		const greatestDeviation
-			= counter.greatestDeviationRollCount(counter.expectedAverage);
+		const greatestDeviation = counter.greatestDeviationRollCount();
 
 		const greatestDeviationRolls
-			= counter.rollsMatchingDeviation
-				( counter.expectedAverage
-				, greatestDeviation
-				);
+			= counter.rollsMatchingDeviation(greatestDeviation);
 
 		for (const roll of greatestDeviationRolls) {
 			let count = counter.rollCounts[roll];
