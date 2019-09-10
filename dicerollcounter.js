@@ -178,7 +178,19 @@ class Histogram {
 
 		this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-		// Expected Average Range
+		this.drawExpectedAverageRange
+			( maxCount
+			, expectedAverageHigh
+			, expectedAverageLow
+			);
+
+		this.drawGreatestDeviations(expectedAverageHigh, expectedAverageLow);
+
+		this.drawRollBars(maxCount);
+	}
+
+	/*========================================================================*/
+	drawExpectedAverageRange(maxCount, expectedAverageHigh, expectedAverageLow) {
 		if (maxCount > 0) {
 			const averageTop
 				= this.barBottom
@@ -195,36 +207,38 @@ class Histogram {
 				, averageBottom - averageTop
 				);
 		}
+	}
 
-		// Greatest Deviations
-		{
-			this.context.fillStyle = this.redStripePattern;
+	/*========================================================================*/
+	drawGreatestDeviations(expectedAverageHigh, expectedAverageLow) {
+		this.context.fillStyle = this.redStripePattern;
 
-			const greatestDeviation = counter.greatestDeviationRollCount();
+		const greatestDeviation = counter.greatestDeviationRollCount();
 
-			const greatestDeviationRolls
-				= counter.rollsMatchingDeviation(greatestDeviation);
+		const greatestDeviationRolls
+			= counter.rollsMatchingDeviation(greatestDeviation);
 
-			for (const roll of greatestDeviationRolls) {
-				let count = counter.rollCounts[roll];
+		for (const roll of greatestDeviationRolls) {
+			let count = counter.rollCounts[roll];
+			if (count === undefined) count = 0;
 
-				if (count === undefined) count = 0;
-
-				if (count >= expectedAverageLow && count <= expectedAverageHigh) {
-					continue;
-				}
-
-				const barLeft = (roll - 1) * this.barSpacing;
-
-				this.context.fillRect
-					( barLeft
-					, 0
-					, this.barSpacing
-					, this.barBottom
-					);
+			if (count >= expectedAverageLow && count <= expectedAverageHigh) {
+				continue;
 			}
-		}
 
+			const barLeft = (roll - 1) * this.barSpacing;
+
+			this.context.fillRect
+				( barLeft
+				, 0
+				, this.barSpacing
+				, this.barBottom
+				);
+		}
+	}
+
+	/*========================================================================*/
+	drawRollBars(maxCount) {
 		this.context.textAlign = "center";
 		this.context.textBaseline = "bottom";
 		this.context.font = this.fontHeight + "px sans-serif";
