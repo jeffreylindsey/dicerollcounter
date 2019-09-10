@@ -2,6 +2,7 @@
 
 const minRoll = 1;
 const maxRoll = 20;
+const numFaces = maxRoll - minRoll + 1;
 
 let rollHistory = [];
 const rollHistoryMaxLength = 10;
@@ -12,6 +13,7 @@ class RollCounter {
 	constructor() {
 		this.rollCounts = {};
 		this.total = 0;
+		this.expectedAverage = 0;
 	}
 
 	/*========================================================================*/
@@ -23,18 +25,21 @@ class RollCounter {
 		}
 
 		this.total++;
+		this.updateExpectedAverage();
 	}
 
 	/*========================================================================*/
 	uncountRoll(number) {
 		this.rollCounts[number]--;
 		this.total--;
+		this.updateExpectedAverage();
 	}
 
 	/*========================================================================*/
 	reset() {
 		this.rollCounts = {};
 		this.total = 0;
+		this.expectedAverage = 0;
 	}
 
 	/*========================================================================*/
@@ -51,13 +56,6 @@ class RollCounter {
 		}
 
 		return max;
-	}
-
-	/*========================================================================*/
-	expectedAverageRollCount() {
-		const numFaces = maxRoll - minRoll + 1;
-
-		return this.total / numFaces;
 	}
 
 	/*========================================================================*/
@@ -112,6 +110,7 @@ class RollCounter {
 		// The total needs to be recalculated, because the roll counts have
 		// changed.
 		this.updateTotalFromRollCounts();
+		this.updateExpectedAverage();
 	}
 
 	/*========================================================================*/
@@ -123,6 +122,11 @@ class RollCounter {
 
 			if (count !== undefined) this.total += count;
 		}
+	}
+
+	/*========================================================================*/
+	updateExpectedAverage() {
+		this.expectedAverage = this.total / numFaces;
 	}
 }
 
@@ -196,7 +200,7 @@ function onRollCountsChanged() {
 
 	document.getElementById("total-count").textContent = counter.total;
 	document.getElementById("expected-average").textContent
-		= counter.expectedAverageRollCount();
+		= counter.expectedAverage;
 
 	fillDataTable();
 }
@@ -237,9 +241,9 @@ function drawHistogram() {
 	const maxBarHeight = canvasHeight - labelHeight - barPadding;
 
 	const maxCount = counter.maxRollCount();
-	const expectedAverage = counter.expectedAverageRollCount();
-	const expectedAverageHigh = Math.ceil(expectedAverage) + 0.5;
-	const expectedAverageLow = Math.max(0, Math.floor(expectedAverage) - 0.5);
+	const expectedAverageHigh = Math.ceil(counter.expectedAverage) + 0.5;
+	const expectedAverageLow
+		= Math.max(0, Math.floor(counter.expectedAverage) - 0.5);
 
 	context.clearRect(0, 0, canvasWidth, canvasHeight);
 
@@ -279,10 +283,13 @@ function drawHistogram() {
 		context.fillStyle = pattern;
 
 		const greatestDeviation
-			= counter.greatestDeviationRollCount(expectedAverage);
+			= counter.greatestDeviationRollCount(counter.expectedAverage);
 
 		const greatestDeviationRolls
-			= counter.rollsMatchingDeviation(expectedAverage, greatestDeviation);
+			= counter.rollsMatchingDeviation
+				( counter.expectedAverage
+				, greatestDeviation
+				);
 
 		for (const roll of greatestDeviationRolls) {
 			let count = counter.rollCounts[roll];
@@ -348,8 +355,6 @@ function fillDataTable() {
 	}
 	dataTable.appendChild(headerRow);
 
-	const expectedAverage = counter.expectedAverageRollCount();
-
 	for (let roll = minRoll; roll <= maxRoll; roll++) {
 		let count = counter.rollCounts[roll];
 
@@ -367,7 +372,7 @@ function fillDataTable() {
 			row.appendChild(cell);
 		}
 		{
-			const deviation = count - expectedAverage;
+			const deviation = count - counter.expectedAverage;
 
 			const cell = document.createElement("td");
 			cell.textContent = deviation.toFixed(2);
