@@ -1,0 +1,65 @@
+body {
+	max-width: 640px;
+}
+
+h1, h2 {
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+h1 {
+	margin: 0;
+	padding: 0;
+	text-align: center;
+}
+
+canvas#histogram {
+	width: 100%;
+	max-width: 600px;
+}
+
+div.buttons {
+	text-align: center;
+}
+
+button {
+	width: 60px;
+	height: 60px;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 24px;
+	font-weight: bold;
+}
+
+button#undo {
+	width: 120px;
+}
+
+button#reset {
+	width: 120px;
+}
+
+#roll-history {
+	width: calc(100% - 130px);
+	max-width: calc(600px - 130px);
+	height: 60px;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 24px;
+	font-weight: bold;
+	padding-left: 0.5em;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table, th, td {
+	border: 1px solid black;
+}
+
+th {
+	padding: 0.5rem;
+}
+
+td {
+	padding: 0 0.5rem;
+	text-align: right;
+}

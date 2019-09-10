@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Dice Roll Counter</title>
+		<link rel="stylesheet" type="text/css" href="style.css">
+		<script src="dicerollcounter.js"></script>
+	</head>
+	<body onload="onLoad()">
+		<h1>Dice Roll Counter</h1>
+
+		<canvas id="histogram" width="1200" height="600"></canvas>
+
+		<div>
+			Rolls: <span id="total-count"></span> &mdash;
+			Target Avg.: <span id="expected-average"></span>
+		</div>
+
+		<div class="buttons">
+			<!-- Note: the strange wrapping is to prevent spaces between the buttons -->
+			<button
+				onclick="onDiceRoll(1)">1</button><button
+				onclick="onDiceRoll(2)">2</button><button
+				onclick="onDiceRoll(3)">3</button><button
+				onclick="onDiceRoll(4)">4</button><button
+				onclick="onDiceRoll(5)">5</button><button
+				onclick="onDiceRoll(6)">6</button><button
+				onclick="onDiceRoll(7)">7</button><button
+				onclick="onDiceRoll(8)">8</button><button
+				onclick="onDiceRoll(9)">9</button><button
+				onclick="onDiceRoll(10)">10</button><button
+				onclick="onDiceRoll(11)">11</button><button
+				onclick="onDiceRoll(12)">12</button><button
+				onclick="onDiceRoll(13)">13</button><button
+				onclick="onDiceRoll(14)">14</button><button
+				onclick="onDiceRoll(15)">15</button><button
+				onclick="onDiceRoll(16)">16</button><button
+				onclick="onDiceRoll(17)">17</button><button
+				onclick="onDiceRoll(18)">18</button><button
+				onclick="onDiceRoll(19)">19</button><button
+				onclick="onDiceRoll(20)">20</button>
+		</div>
+
+		<h2>History</h2>
+
+		<div>
+			<button id="undo" onclick="onUndo()">Undo</button><input id="roll-history" readonly></input>
+		</div>
+
+		<h2>Data</h2>
+
+		<table id="data-table"><tr></tr></table>
+	
+		<h2>Reset</h2> 
+
+		<button id="reset" onclick="onReset()">Reset</button>
+	</body>
+</html>
