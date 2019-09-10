@@ -153,23 +153,20 @@ class Histogram {
 			this.init();
 		}
 
-		const canvasWidth = this.canvas.width;
-		const canvasHeight = this.canvas.height;
-
-		const barSpacing = canvasWidth / 20;
+		const barSpacing = this.canvas.width / 20;
 		const barWidth = barSpacing * 0.65;
 		const barPadding = (barSpacing - barWidth) / 2;
 		const fontHeight = barWidth * 0.75;
 		const labelHeight = fontHeight + barPadding;
-		const barBottom = canvasHeight - labelHeight;
-		const maxBarHeight = canvasHeight - labelHeight - barPadding;
+		const barBottom = this.canvas.height - labelHeight;
+		const maxBarHeight = this.canvas.height - labelHeight - barPadding;
 
 		const maxCount = counter.maxRollCount();
 		const expectedAverageHigh = Math.ceil(counter.expectedAverage) + 0.5;
 		const expectedAverageLow
 			= Math.max(0, Math.floor(counter.expectedAverage) - 0.5);
 
-		this.context.clearRect(0, 0, canvasWidth, canvasHeight);
+		this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
 		// Expected Average Range
 		if (maxCount > 0) {
@@ -182,7 +179,7 @@ class Histogram {
 			this.context.fillRect
 				( 0
 				, averageTop
-				, canvasWidth
+				, this.canvas.width
 				, averageBottom - averageTop
 				);
 		}
@@ -219,7 +216,11 @@ class Histogram {
 		for (let roll = minRoll; roll <= maxRoll; roll++) {
 			const barLeft = (roll - 1) * barSpacing;
 
-			this.context.fillText(roll, barLeft + barSpacing / 2, canvasHeight);
+			this.context.fillText
+				( roll
+				, barLeft + barSpacing / 2
+				, this.canvas.height
+				);
 
 			const count = counter.rollCounts[roll];
 
