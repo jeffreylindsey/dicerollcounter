@@ -36,13 +36,6 @@ class RollCounter {
 	}
 
 	/*========================================================================*/
-	reset() {
-		this.rollCounts = {};
-		this.total = 0;
-		this.expectedAverage = 0;
-	}
-
-	/*========================================================================*/
 	maxRollCount() {
 		let max = 0;
 
@@ -163,7 +156,7 @@ function onUndo() {
 
 /*============================================================================*/
 function onReset() {
-	counter.reset();
+	counter = new RollCounter;
 	rollHistory = [];
 	onRollCountsChanged();
 	onRollHistoryChanged();
