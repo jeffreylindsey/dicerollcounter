@@ -189,22 +189,16 @@ class Histogram {
 
 	/*========================================================================*/
 	drawExpectedAverageRange(expectedAverageHigh, expectedAverageLow) {
-		if (this.maxCount > 0) {
-			const averageTop
-				= this.barBottom
-					- (this.maxBarHeight * expectedAverageHigh / this.maxCount);
-			const averageBottom
-				= this.barBottom
-					- (this.maxBarHeight * expectedAverageLow / this.maxCount);
+		const averageTop = this.valueToY(expectedAverageHigh);
+		const averageBottom = this.valueToY(expectedAverageLow);
 
-			this.context.fillStyle = "grey";
-			this.context.fillRect
-				( 0
-				, averageTop
-				, this.canvas.width
-				, averageBottom - averageTop
-				);
-		}
+		this.context.fillStyle = "grey";
+		this.context.fillRect
+			( 0
+			, averageTop
+			, this.canvas.width
+			, averageBottom - averageTop
+			);
 	}
 
 	/*========================================================================*/
@@ -253,17 +247,24 @@ class Histogram {
 
 			const count = counter.rollCounts[roll];
 
-			if (this.maxCount > 0) {
-				const barHeight = this.maxBarHeight * count / this.maxCount;
+			const barTop = this.valueToY(count);
 
-				this.context.fillRect
-					( barLeft + this.barPadding
-					, this.barBottom - barHeight
-					, this.barWidth
-					, barHeight
-					);
-			}
+			this.context.fillRect
+				( barLeft + this.barPadding
+				, barTop
+				, this.barWidth
+				, this.barBottom - barTop
+				);
 		}
+	}
+
+	/*========================================================================*/
+	valueToY(value) {
+		if (this.maxCount <= 0) {
+			return this.barBottom;
+		}
+
+		return this.barBottom - (this.maxBarHeight * value / this.maxCount);
 	}
 
 	/*========================================================================*/
