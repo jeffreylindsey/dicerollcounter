@@ -3,9 +3,129 @@
 const minRoll = 1;
 const maxRoll = 20;
 
-let rollCounts = {};
 let rollHistory = [];
 const rollHistoryMaxLength = 10;
+
+/******************************************************************************/
+
+class RollCounter {
+	constructor() {
+		this.rollCounts = {};
+	}
+
+	/*========================================================================*/
+	countRoll(number) {
+		if (this.rollCounts[number] === undefined) {
+			this.rollCounts[number] = 1;
+		} else {
+			this.rollCounts[number]++;
+		}
+	}
+
+	/*========================================================================*/
+	uncountRoll(number) {
+		this.rollCounts[number]--;
+	}
+
+	/*========================================================================*/
+	reset() {
+		this.rollCounts = {};
+	}
+
+	/*========================================================================*/
+	totalRollCount() {
+		let total = 0;
+
+		for (let roll = minRoll; roll <= maxRoll; roll++) {
+			let count = this.rollCounts[roll];
+
+			if (count === undefined) continue;
+
+			total += count;
+		}
+
+		return total;
+	}
+
+	/*========================================================================*/
+	maxRollCount() {
+		let max = 0;
+
+		for (let roll = minRoll; roll <= maxRoll; roll++) {
+			let count = this.rollCounts[roll];
+
+			if (count === undefined) continue;
+
+			if (max < count)
+				max = count;
+		}
+
+		return max;
+	}
+
+	/*========================================================================*/
+	expectedAverageRollCount() {
+		const numFaces = maxRoll - minRoll + 1;
+
+		return this.totalRollCount() / numFaces;
+	}
+
+	/*========================================================================*/
+	greatestDeviationRollCount(expectedAverage) {
+		let greatestDeviation = 0;
+
+		for (let roll = minRoll; roll <= maxRoll; roll++) {
+			let count = this.rollCounts[roll];
+
+			if (count === undefined) continue;
+
+			const deviation = Math.abs(count - expectedAverage);
+
+			if (greatestDeviation < deviation)
+				greatestDeviation = deviation;
+		}
+
+		return greatestDeviation;
+	}
+
+	/*========================================================================*/
+	rollsMatchingDeviation(expectedAverage, matchDeviation)
+	{
+		let matchingRolls = [];
+
+		const count = this.totalRollCount();
+
+		if (count <= 0) return [];
+
+		for (let roll = minRoll; roll <= maxRoll; roll++) {
+			let count = this.rollCounts[roll];
+
+			if (count === undefined) count = 0;
+
+			const deviation = Math.abs(count - expectedAverage);
+
+			if (deviation == matchDeviation)
+				matchingRolls.push(roll);
+		}
+
+		return matchingRolls;
+	}
+
+	/*========================================================================*/
+	saveToLocalStorage() {
+		localStorage.setItem("rollCounts", JSON.stringify(this.rollCounts));
+	}
+
+	/*========================================================================*/
+	loadFromLocalStorage() {
+		const storedRollCounts = localStorage.getItem("rollCounts");
+		if (storedRollCounts) this.rollCounts = JSON.parse(storedRollCounts);
+	}
+}
+
+/******************************************************************************/
+
+let counter = new RollCounter;
 
 /*============================================================================*/
 function onLoad() {
@@ -36,7 +156,7 @@ function onUndo() {
 
 /*============================================================================*/
 function onReset() {
-	rollCounts = {};
+	counter.reset();
 	rollHistory = [];
 	onRollCountsChanged();
 	onRollHistoryChanged();
@@ -44,19 +164,13 @@ function onReset() {
 
 /*============================================================================*/
 function countRoll(number) {
-	if (rollCounts[number] === undefined) {
-		rollCounts[number] = 1;
-	} else {
-		rollCounts[number]++;
-	}
-
+	counter.countRoll(number);
 	onRollCountsChanged();
 }
 
 /*============================================================================*/
 function uncountRoll(number) {
-	rollCounts[number]--;
-
+	counter.uncountRoll(number);
 	onRollCountsChanged();
 }
 
@@ -73,16 +187,13 @@ function addRollToHistory(number) {
 
 /*============================================================================*/
 function onRollCountsChanged() {
-	//console.log(rollCounts);
-
-	localStorage.setItem("rollCounts", JSON.stringify(rollCounts));
+	counter.saveToLocalStorage();
 
 	drawHistogram();
 
-	const expectedAverage = expectedAverageRollCount();
-
-	document.getElementById("total-count").textContent = totalRollCount();
-	document.getElementById("expected-average").textContent = expectedAverage;
+	document.getElementById("total-count").textContent = counter.totalRollCount();
+	document.getElementById("expected-average").textContent
+		= counter.expectedAverageRollCount();
 
 	fillDataTable();
 }
@@ -105,87 +216,6 @@ function onRollHistoryChanged() {
 }
 
 /*============================================================================*/
-function totalRollCount() {
-	let total = 0;
-
-	for (let roll = minRoll; roll <= maxRoll; roll++) {
-		let count = rollCounts[roll];
-
-		if (count === undefined) continue;
-
-		total += count;
-	}
-
-	return total;
-}
-
-/*============================================================================*/
-function maxRollCount() {
-	let max = 0;
-
-	for (let roll = minRoll; roll <= maxRoll; roll++) {
-		let count = rollCounts[roll];
-
-		if (count === undefined) continue;
-
-		if (max < count)
-			max = count;
-	}
-
-	return max;
-}
-
-/*============================================================================*/
-function greatestDeviationRollCount(expectedAverage) {
-	let greatestDeviation = 0;
-
-	for (let roll = minRoll; roll <= maxRoll; roll++) {
-		let count = rollCounts[roll];
-
-		if (count === undefined) continue;
-
-		const deviation = Math.abs(count - expectedAverage);
-
-		if (greatestDeviation < deviation)
-			greatestDeviation = deviation;
-	}
-
-	return greatestDeviation;
-}
-
-/*============================================================================*/
-function rollsMatchingDeviation(expectedAverage, matchDeviation)
-{
-	let matchingRolls = [];
-
-	const count = totalRollCount();
-
-	if (count <= 0) return [];
-
-	const matchEpsilon = 1 / count;
-
-	for (let roll = minRoll; roll <= maxRoll; roll++) {
-		let count = rollCounts[roll];
-
-		if (count === undefined) count = 0;
-
-		const deviation = Math.abs(count - expectedAverage);
-
-		if (deviation == matchDeviation)
-			matchingRolls.push(roll);
-	}
-
-	return matchingRolls;
-}
-
-/*============================================================================*/
-function expectedAverageRollCount() {
-	const numFaces = maxRoll - minRoll + 1;
-
-	return totalRollCount() / numFaces;
-}
-
-/*============================================================================*/
 function drawHistogram() {
 	let canvas = document.getElementById("histogram");
 	let context = canvas.getContext("2d");
@@ -203,8 +233,8 @@ function drawHistogram() {
 	const barBottom = canvasHeight - labelHeight;
 	const maxBarHeight = canvasHeight - labelHeight - barPadding;
 
-	const maxCount = maxRollCount();
-	const expectedAverage = expectedAverageRollCount();
+	const maxCount = counter.maxRollCount();
+	const expectedAverage = counter.expectedAverageRollCount();
 	const expectedAverageHigh = Math.ceil(expectedAverage) + 0.5;
 	const expectedAverageLow = Math.max(0, Math.floor(expectedAverage) - 0.5);
 
@@ -245,12 +275,14 @@ function drawHistogram() {
 		const pattern = context.createPattern(patternCanvas, "repeat");
 		context.fillStyle = pattern;
 
-		const greatestDeviation = greatestDeviationRollCount(expectedAverage);
+		const greatestDeviation
+			= counter.greatestDeviationRollCount(expectedAverage);
+
 		const greatestDeviationRolls
-			= rollsMatchingDeviation(expectedAverage, greatestDeviation);
+			= counter.rollsMatchingDeviation(expectedAverage, greatestDeviation);
 
 		for (const roll of greatestDeviationRolls) {
-			let count = rollCounts[roll];
+			let count = counter.rollCounts[roll];
 
 			if (count === undefined) count = 0;
 
@@ -274,7 +306,7 @@ function drawHistogram() {
 
 		context.fillText(roll, barLeft + barSpacing / 2, canvasHeight);
 
-		const count = rollCounts[roll];
+		const count = counter.rollCounts[roll];
 
 		if (maxCount > 0) {
 			const barHeight = maxBarHeight * count / maxCount;
@@ -313,10 +345,10 @@ function fillDataTable() {
 	}
 	dataTable.appendChild(headerRow);
 
-	const expectedAverage = expectedAverageRollCount();
+	const expectedAverage = counter.expectedAverageRollCount();
 
 	for (let roll = minRoll; roll <= maxRoll; roll++) {
-		let count = rollCounts[roll];
+		let count = counter.rollCounts[roll];
 
 		if (count === undefined) count = 0;
 
@@ -344,10 +376,9 @@ function fillDataTable() {
 
 /*============================================================================*/
 function loadFromLocalStorage() {
-	const storedRollCounts = localStorage.getItem("rollCounts");
-	const storedRollHistory = localStorage.getItem("rollHistory");
+	counter.loadFromLocalStorage();
 
-	if (storedRollCounts) rollCounts = JSON.parse(storedRollCounts);
+	const storedRollHistory = localStorage.getItem("rollHistory");
 	if (storedRollHistory) rollHistory = JSON.parse(storedRollHistory);
 }
 
