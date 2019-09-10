@@ -132,17 +132,19 @@ class RollCounter {
 
 class Histogram {
 	constructor() {
+		this.canvas = null;
+		this.context = null;
 	}
 
 	/*========================================================================*/
 	draw() {
-		let canvas = document.getElementById("histogram");
-		let context = canvas.getContext("2d");
+		this.canvas = document.getElementById("histogram");
+		this.context = this.canvas.getContext("2d");
 
-		canvas.height = canvas.width * 0.5;
+		this.canvas.height = this.canvas.width * 0.5;
 
-		const canvasWidth = canvas.width;
-		const canvasHeight = canvas.height;
+		const canvasWidth = this.canvas.width;
+		const canvasHeight = this.canvas.height;
 
 		const barSpacing = canvasWidth / 20;
 		const barWidth = barSpacing * 0.65;
@@ -157,7 +159,7 @@ class Histogram {
 		const expectedAverageLow
 			= Math.max(0, Math.floor(counter.expectedAverage) - 0.5);
 
-		context.clearRect(0, 0, canvasWidth, canvasHeight);
+		this.context.clearRect(0, 0, canvasWidth, canvasHeight);
 
 		// Expected Average Range
 		if (maxCount > 0) {
@@ -166,8 +168,13 @@ class Histogram {
 			const averageBottom
 				= barBottom - (maxBarHeight * expectedAverageLow / maxCount);
 
-			context.fillStyle = "grey";
-			context.fillRect(0, averageTop, canvasWidth, averageBottom - averageTop);
+			this.context.fillStyle = "grey";
+			this.context.fillRect
+				( 0
+				, averageTop
+				, canvasWidth
+				, averageBottom - averageTop
+				);
 		}
 
 		// Greatest Deviations
@@ -191,8 +198,8 @@ class Histogram {
 			patternContext.closePath();
 			patternContext.fill();
 
-			const pattern = context.createPattern(patternCanvas, "repeat");
-			context.fillStyle = pattern;
+			const pattern = this.context.createPattern(patternCanvas, "repeat");
+			this.context.fillStyle = pattern;
 
 			const greatestDeviation = counter.greatestDeviationRollCount();
 
@@ -210,26 +217,26 @@ class Histogram {
 
 				const barLeft = (roll - 1) * barSpacing;
 
-				context.fillRect(barLeft, 0, barSpacing, barBottom);
+				this.context.fillRect(barLeft, 0, barSpacing, barBottom);
 			}
 		}
 
-		context.textAlign = "center";
-		context.textBaseline = "bottom";
-		context.font = fontHeight + "px sans-serif";
-		context.fillStyle = "black";
+		this.context.textAlign = "center";
+		this.context.textBaseline = "bottom";
+		this.context.font = fontHeight + "px sans-serif";
+		this.context.fillStyle = "black";
 
 		for (let roll = minRoll; roll <= maxRoll; roll++) {
 			const barLeft = (roll - 1) * barSpacing;
 
-			context.fillText(roll, barLeft + barSpacing / 2, canvasHeight);
+			this.context.fillText(roll, barLeft + barSpacing / 2, canvasHeight);
 
 			const count = counter.rollCounts[roll];
 
 			if (maxCount > 0) {
 				const barHeight = maxBarHeight * count / maxCount;
 
-				context.fillRect
+				this.context.fillRect
 					( barLeft + barPadding
 					, barBottom - barHeight
 					, barWidth
