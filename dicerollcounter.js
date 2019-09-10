@@ -130,7 +130,120 @@ class RollCounter {
 
 /******************************************************************************/
 
+class Histogram {
+	constructor() {
+	}
+
+	/*========================================================================*/
+	draw() {
+		let canvas = document.getElementById("histogram");
+		let context = canvas.getContext("2d");
+
+		canvas.height = canvas.width * 0.5;
+
+		const canvasWidth = canvas.width;
+		const canvasHeight = canvas.height;
+
+		const barSpacing = canvasWidth / 20;
+		const barWidth = barSpacing * 0.65;
+		const barPadding = (barSpacing - barWidth) / 2;
+		const fontHeight = barWidth * 0.75;
+		const labelHeight = fontHeight + barPadding;
+		const barBottom = canvasHeight - labelHeight;
+		const maxBarHeight = canvasHeight - labelHeight - barPadding;
+
+		const maxCount = counter.maxRollCount();
+		const expectedAverageHigh = Math.ceil(counter.expectedAverage) + 0.5;
+		const expectedAverageLow
+			= Math.max(0, Math.floor(counter.expectedAverage) - 0.5);
+
+		context.clearRect(0, 0, canvasWidth, canvasHeight);
+
+		// Expected Average Range
+		if (maxCount > 0) {
+			const averageTop
+				= barBottom - (maxBarHeight * expectedAverageHigh / maxCount);
+			const averageBottom
+				= barBottom - (maxBarHeight * expectedAverageLow / maxCount);
+
+			context.fillStyle = "grey";
+			context.fillRect(0, averageTop, canvasWidth, averageBottom - averageTop);
+		}
+
+		// Greatest Deviations
+		{
+			const patternCanvas = document.createElement("canvas");
+			const patternContext = patternCanvas.getContext("2d");
+			patternCanvas.width = 32;
+			patternCanvas.height = 32;
+			patternContext.fillStyle = "red";
+			patternContext.beginPath();
+			patternContext.moveTo(0, 16);
+			patternContext.lineTo(16, 0);
+			patternContext.lineTo(32, 0);
+			patternContext.lineTo(0, 32);
+			patternContext.closePath();
+			patternContext.fill();
+			patternContext.beginPath();
+			patternContext.moveTo(16, 32);
+			patternContext.lineTo(32, 16);
+			patternContext.lineTo(32, 32);
+			patternContext.closePath();
+			patternContext.fill();
+
+			const pattern = context.createPattern(patternCanvas, "repeat");
+			context.fillStyle = pattern;
+
+			const greatestDeviation = counter.greatestDeviationRollCount();
+
+			const greatestDeviationRolls
+				= counter.rollsMatchingDeviation(greatestDeviation);
+
+			for (const roll of greatestDeviationRolls) {
+				let count = counter.rollCounts[roll];
+
+				if (count === undefined) count = 0;
+
+				if (count >= expectedAverageLow && count <= expectedAverageHigh) {
+					continue;
+				}
+
+				const barLeft = (roll - 1) * barSpacing;
+
+				context.fillRect(barLeft, 0, barSpacing, barBottom);
+			}
+		}
+
+		context.textAlign = "center";
+		context.textBaseline = "bottom";
+		context.font = fontHeight + "px sans-serif";
+		context.fillStyle = "black";
+
+		for (let roll = minRoll; roll <= maxRoll; roll++) {
+			const barLeft = (roll - 1) * barSpacing;
+
+			context.fillText(roll, barLeft + barSpacing / 2, canvasHeight);
+
+			const count = counter.rollCounts[roll];
+
+			if (maxCount > 0) {
+				const barHeight = maxBarHeight * count / maxCount;
+
+				context.fillRect
+					( barLeft + barPadding
+					, barBottom - barHeight
+					, barWidth
+					, barHeight
+					);
+			}
+		}
+	}
+}
+
+/******************************************************************************/
+
 let counter = new RollCounter;
+let histogram = new Histogram;
 
 /*============================================================================*/
 function onLoad() {
@@ -222,107 +335,7 @@ function onRollHistoryChanged() {
 
 /*============================================================================*/
 function drawHistogram() {
-	let canvas = document.getElementById("histogram");
-	let context = canvas.getContext("2d");
-
-	canvas.height = canvas.width * 0.5;
-
-	const canvasWidth = canvas.width;
-	const canvasHeight = canvas.height;
-
-	const barSpacing = canvasWidth / 20;
-	const barWidth = barSpacing * 0.65;
-	const barPadding = (barSpacing - barWidth) / 2;
-	const fontHeight = barWidth * 0.75;
-	const labelHeight = fontHeight + barPadding;
-	const barBottom = canvasHeight - labelHeight;
-	const maxBarHeight = canvasHeight - labelHeight - barPadding;
-
-	const maxCount = counter.maxRollCount();
-	const expectedAverageHigh = Math.ceil(counter.expectedAverage) + 0.5;
-	const expectedAverageLow
-		= Math.max(0, Math.floor(counter.expectedAverage) - 0.5);
-
-	context.clearRect(0, 0, canvasWidth, canvasHeight);
-
-	// Expected Average Range
-	if (maxCount > 0) {
-		const averageTop
-			= barBottom - (maxBarHeight * expectedAverageHigh / maxCount);
-		const averageBottom
-			= barBottom - (maxBarHeight * expectedAverageLow / maxCount);
-
-		context.fillStyle = "grey";
-		context.fillRect(0, averageTop, canvasWidth, averageBottom - averageTop);
-	}
-
-	// Greatest Deviations
-	{
-		const patternCanvas = document.createElement("canvas");
-		const patternContext = patternCanvas.getContext("2d");
-		patternCanvas.width = 32;
-		patternCanvas.height = 32;
-		patternContext.fillStyle = "red";
-		patternContext.beginPath();
-		patternContext.moveTo(0, 16);
-		patternContext.lineTo(16, 0);
-		patternContext.lineTo(32, 0);
-		patternContext.lineTo(0, 32);
-		patternContext.closePath();
-		patternContext.fill();
-		patternContext.beginPath();
-		patternContext.moveTo(16, 32);
-		patternContext.lineTo(32, 16);
-		patternContext.lineTo(32, 32);
-		patternContext.closePath();
-		patternContext.fill();
-
-		const pattern = context.createPattern(patternCanvas, "repeat");
-		context.fillStyle = pattern;
-
-		const greatestDeviation = counter.greatestDeviationRollCount();
-
-		const greatestDeviationRolls
-			= counter.rollsMatchingDeviation(greatestDeviation);
-
-		for (const roll of greatestDeviationRolls) {
-			let count = counter.rollCounts[roll];
-
-			if (count === undefined) count = 0;
-
-			if (count >= expectedAverageLow && count <= expectedAverageHigh) {
-				continue;
-			}
-
-			const barLeft = (roll - 1) * barSpacing;
-
-			context.fillRect(barLeft, 0, barSpacing, barBottom);
-		}
-	}
-
-	context.textAlign = "center";
-	context.textBaseline = "bottom";
-	context.font = fontHeight + "px sans-serif";
-	context.fillStyle = "black";
-
-	for (let roll = minRoll; roll <= maxRoll; roll++) {
-		const barLeft = (roll - 1) * barSpacing;
-
-		context.fillText(roll, barLeft + barSpacing / 2, canvasHeight);
-
-		const count = counter.rollCounts[roll];
-
-		if (maxCount > 0) {
-			const barHeight = maxBarHeight * count / maxCount;
-
-			context.fillRect
-				( barLeft + barPadding
-				, barBottom - barHeight
-				, barWidth
-				, barHeight
-				);
-		}
-	}
+	histogram.draw();
 }
 
 /*============================================================================*/
