@@ -134,6 +134,7 @@ class Histogram {
 	constructor() {
 		this.canvas = null;
 		this.context = null;
+		this.redStripePattern = null;
 	}
 
 	/*========================================================================*/
@@ -179,27 +180,10 @@ class Histogram {
 
 		// Greatest Deviations
 		{
-			const patternCanvas = document.createElement("canvas");
-			const patternContext = patternCanvas.getContext("2d");
-			patternCanvas.width = 32;
-			patternCanvas.height = 32;
-			patternContext.fillStyle = "red";
-			patternContext.beginPath();
-			patternContext.moveTo(0, 16);
-			patternContext.lineTo(16, 0);
-			patternContext.lineTo(32, 0);
-			patternContext.lineTo(0, 32);
-			patternContext.closePath();
-			patternContext.fill();
-			patternContext.beginPath();
-			patternContext.moveTo(16, 32);
-			patternContext.lineTo(32, 16);
-			patternContext.lineTo(32, 32);
-			patternContext.closePath();
-			patternContext.fill();
+			if (this.redStripePattern === null)
+				this.createRedStripePattern();
 
-			const pattern = this.context.createPattern(patternCanvas, "repeat");
-			this.context.fillStyle = pattern;
+			this.context.fillStyle = this.redStripePattern;
 
 			const greatestDeviation = counter.greatestDeviationRollCount();
 
@@ -244,6 +228,34 @@ class Histogram {
 					);
 			}
 		}
+	}
+
+	/*========================================================================*/
+	createRedStripePattern() {
+		const patternCanvas = document.createElement("canvas");
+		patternCanvas.width = 32;
+		patternCanvas.height = 32;
+
+		const patternContext = patternCanvas.getContext("2d");
+		patternContext.fillStyle = "red";
+
+		patternContext.beginPath();
+		patternContext.moveTo(0, 16);
+		patternContext.lineTo(16, 0);
+		patternContext.lineTo(32, 0);
+		patternContext.lineTo(0, 32);
+		patternContext.closePath();
+		patternContext.fill();
+
+		patternContext.beginPath();
+		patternContext.moveTo(16, 32);
+		patternContext.lineTo(32, 16);
+		patternContext.lineTo(32, 32);
+		patternContext.closePath();
+		patternContext.fill();
+
+		this.redStripePattern
+			= this.context.createPattern(patternCanvas, "repeat");
 	}
 }
 
