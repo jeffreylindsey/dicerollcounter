@@ -2,7 +2,7 @@
 
 Dice Roll Counter is a simple webpage designed to assist with checking the fairness of a 20-sided die (D20).
 
-Can be found at: jeffreylindsey.com/misc/dicerollcounter/
+This page can be found live at: [jeffreylindsey.com/misc/dicerollcounter/](http://jeffreylindsey.com/misc/dicerollcounter/)
 
 ## Usage
 
